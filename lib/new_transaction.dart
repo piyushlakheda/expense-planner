@@ -5,12 +5,35 @@ import 'package:flutter/src/widgets/framework.dart';
 
 import 'package:flutter/material.dart';
 
-class NewTransaction extends StatelessWidget {
-  final TitleController = TextEditingController();
-  final AmountController = TextEditingController();
+class NewTransaction extends StatefulWidget {
   final Function addTx;
 
   NewTransaction(this.addTx);
+
+  @override
+  State<NewTransaction> createState() => _NewTransactionState();
+}
+
+class _NewTransactionState extends State<NewTransaction> {
+  final TitleController = TextEditingController();
+
+  final AmountController = TextEditingController();
+
+  void submitData() {
+    final enteredTitle = TitleController.text;
+    final enteredAmount = double.parse(AmountController.text);
+
+    if (enteredTitle.isEmpty || enteredAmount <= 0) {
+      return;
+    }
+
+    widget.addTx(
+      enteredTitle,
+      enteredAmount,
+    );
+
+    Navigator.of(context).pop();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,21 +50,21 @@ class NewTransaction extends StatelessWidget {
               //   titleInput = val;
               // },
               controller: TitleController,
+              onSubmitted: (_) => submitData(),
             ),
             TextField(
               decoration: InputDecoration(labelText: 'Amount'),
               // onChanged: (val) {
               //   amountInput = val;
               // },
+
+              keyboardType: TextInputType.number,
+              onSubmitted: (_) => submitData(),
+
               controller: AmountController,
             ),
             FlatButton(
-              onPressed: () {
-                addTx(
-                  TitleController.text,
-                  double.parse(AmountController.text),
-                );
-              },
+              onPressed: () => submitData,
               child: Text(
                 'Add transaction',
                 style: TextStyle(
@@ -50,7 +73,8 @@ class NewTransaction extends StatelessWidget {
                   fontSize: 12,
                 ),
               ),
-              color: Color.fromARGB(255, 52, 64, 245),
+              color: Colors.blueAccent,
+              hoverColor: Colors.blue,
             )
           ],
         ),
