@@ -1,7 +1,8 @@
-// ignore_for_file: prefer_const_constructors, sort_child_properties_last, use_key_in_widget_constructors, non_constant_identifier_names
+// ignore_for_file: prefer_const_constructors, sort_child_properties_last, use_key_in_widget_constructors, non_constant_identifier_names, unnecessary_null_comparison
 
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:intl/intl.dart ';
 
 import 'package:flutter/material.dart';
 
@@ -15,24 +16,52 @@ class NewTransaction extends StatefulWidget {
 }
 
 class _NewTransactionState extends State<NewTransaction> {
-  final TitleController = TextEditingController();
+  final _TitleController = TextEditingController();
+  final _AmountController = TextEditingController();
 
-  final AmountController = TextEditingController();
+  final DateFormat serverFormater = DateFormat('dd-MM-yyyy');
 
+  // DateTime temp = DateTime.now();
+  DateTime _selectDate = DateTime.now();
+
+  @override
   void submitData() {
-    final enteredTitle = TitleController.text;
-    final enteredAmount = double.parse(AmountController.text);
+    if (_AmountController.text.isEmpty) {
+      return;
+    }
+    final enteredTitle = _TitleController.text;
+    final enteredAmount = double.parse(_AmountController.text);
 
-    if (enteredTitle.isEmpty || enteredAmount <= 0) {
+    if (enteredTitle.isEmpty || enteredAmount <= 0 || _selectDate == null) {
       return;
     }
 
     widget.addTx(
       enteredTitle,
       enteredAmount,
+      _selectDate,
     );
 
     Navigator.of(context).pop();
+  }
+
+  void _presentDatePicker() {
+    showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2022),
+      lastDate: DateTime.now(),
+    ).then(
+      (pickedDate) {
+        if (pickedDate == null) {
+          return;
+        }
+        setState(() {
+          _selectDate = pickedDate;
+        });
+      },
+    );
+    print('...');
   }
 
   @override
@@ -49,7 +78,7 @@ class _NewTransactionState extends State<NewTransaction> {
               // onChanged: (val) {
               //   titleInput = val;
               // },
-              controller: TitleController,
+              controller: _TitleController,
               onSubmitted: (_) => submitData(),
             ),
             TextField(
@@ -61,7 +90,33 @@ class _NewTransactionState extends State<NewTransaction> {
               keyboardType: TextInputType.number,
               onSubmitted: (_) => submitData(),
 
-              controller: AmountController,
+              controller: _AmountController,
+            ),
+            Container(
+              height: 70,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      _selectDate == null
+                          ? 'No date chosen'
+                          : 'Picked Date:' +
+                              ' ' +
+                              DateFormat.yMd().format(_selectDate),
+                    ),
+                  ),
+                  FlatButton(
+                    onPressed: _presentDatePicker,
+                    child: Text(
+                      'Choose Date',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    textColor: Theme.of(context).primaryColor,
+                  )
+                ],
+              ),
             ),
             FlatButton(
               onPressed: () => submitData,

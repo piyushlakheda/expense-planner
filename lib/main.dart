@@ -2,11 +2,9 @@
 
 import 'package:expense_planner/new_transaction.dart';
 import 'package:expense_planner/transaction_list.dart';
-import 'package:flutter/gestures.dart';
-
 import 'package:flutter/material.dart';
-
 import 'models/transaction.dart';
+import 'chart.dart';
 
 void main() => runApp(MyApp());
 
@@ -16,12 +14,22 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Expense Planner',
       theme: ThemeData(
-          primarySwatch: Colors.blue,
-          accentColor: Colors.blueAccent,
-          fontFamily: 'Quicksand',
-          appBarTheme: AppBarTheme(
-            textTheme: ThemeData.light().textTheme.copyWith(),
-          )),
+        primarySwatch: Colors.blue,
+        accentColor: Colors.blueAccent,
+        fontFamily: 'Quicksand',
+        appBarTheme: AppBarTheme(
+          textTheme: ThemeData.light().textTheme.copyWith(
+                subtitle1: TextStyle(
+                  fontFamily: 'Open Sans',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+                button: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+        ),
+      ),
       home: MyHomePage(),
     );
   }
@@ -48,16 +56,35 @@ class _MyHomePageState extends State<MyHomePage> {
     // ),
   ];
 
-  void _addNewTransaction(String txTitle, double txamount) {
+  List<Transaction> get _recentTransactions {
+    return _userTransaction.where((tx) {
+      return tx.date.isAfter(
+        DateTime.now().subtract(
+          Duration(days: 7),
+        ),
+      );
+    }).toList();
+  }
+
+  void _addNewTransaction(
+      String txTitle, double txamount, DateTime chosenDate) {
     final newTx = Transaction(
       title: txTitle,
       amount: txamount,
-      date: DateTime.now(),
+      date: chosenDate,
       id: DateTime.now().toString(),
     );
 
     setState(() {
       _userTransaction.add(newTx);
+    });
+  }
+
+  void _deleteTransaction(String id) {
+    setState(() {
+      _userTransaction.removeWhere((tx) {
+        return tx.id == id;
+      });
     });
   }
 
@@ -93,15 +120,8 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Container(
-              width: double.infinity,
-              child: Card(
-                color: Colors.blue,
-                child: Text('CHART'),
-                elevation: 5,
-              ),
-            ),
-            TransactionList(_userTransaction),
+            Chart(_recentTransactions),
+            TransactionList(_userTransaction, _deleteTransaction),
           ],
         ),
       ),
